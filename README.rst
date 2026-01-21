@@ -36,13 +36,19 @@ AVWX Api based APRSD plugins
 Features
 --------
 
-* TODO
+* Fetch METAR weather reports for APRS callsigns
+* Automatically finds the nearest weather station to a callsign's location
+* Uses aprs.fi to get GPS coordinates for callsigns
+* Returns raw METAR data for aviation weather information
 
 
 Requirements
 ------------
 
-* TODO
+* Python 3.11 or higher
+* APRSD server (version 4.2.0 or higher)
+* AVWX API access (either via subscription or self-hosted)
+* aprs.fi API key (for location lookups)
 
 
 Installation
@@ -55,10 +61,142 @@ You can install *AVWX Api based APRSD plugins* via pip_ from PyPI_:
    $ pip install aprsd-avwx-plugin
 
 
+AVWX API Setup
+--------------
+
+This plugin requires access to an AVWX API instance. You have two options:
+
+Official AVWX REST API (Subscription Required)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The official AVWX REST API is available at https://info.avwx.rest/_. This service provides:
+
+* METAR - Current surface conditions
+* TAF - 24-hour forecasts
+* PIREP - Inflight observations
+* AIRMET/SIGMET - Weather advisories
+* NOTAM - Notices to airmen
+* Station information and search
+
+The official service requires a subscription (hobby, pro, or enterprise tiers). Basic METAR and TAF parsing services are free, but other features require paid plans.
+
+For more information, visit the `AVWX REST API`_ website.
+
+.. _AVWX REST API: https://info.avwx.rest/
+
+Self-Hosted AVWX Engine
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, you can self-host your own AVWX API using the open-source `avwx-engine`_ project. This allows you to run your own aviation weather parsing service without subscription fees.
+
+To self-host:
+
+1. Clone the avwx-engine repository:
+
+   .. code:: console
+
+      $ git clone https://github.com/avwx-rest/avwx-engine
+      $ cd avwx-engine
+
+2. Follow the installation and setup instructions in the `avwx-engine`_ README
+
+3. Configure the plugin to point to your self-hosted instance (see Configuration below)
+
+The avwx-engine is a Python library that can be run as a service. You'll need to set up an API server wrapper around it to provide REST API endpoints that this plugin can consume.
+
+
+Configuration
+-------------
+
+The plugin requires two configuration options in your APRSD configuration file:
+
+* ``avwx_plugin.apiKey`` - Your AVWX API key (required)
+* ``avwx_plugin.base_url`` - The base URL for the AVWX API (default: ``https://avwx.rest``)
+
+Example configuration:
+
+.. code:: ini
+
+   [avwx_plugin]
+   apiKey = your-api-key-here
+   base_url = https://avwx.rest
+
+If you're self-hosting, set ``base_url`` to your self-hosted instance URL:
+
+.. code:: ini
+
+   [avwx_plugin]
+   apiKey = your-api-key-here
+   base_url = http://localhost:8000
+
+You also need an aprs.fi API key for location lookups:
+
+.. code:: ini
+
+   [aprs_fi]
+   apiKey = your-aprs-fi-api-key-here
+
+
 Usage
 -----
 
-Please see the `Command-line Reference <Usage_>`_ for details.
+Once installed and configured, the plugin can be triggered via APRS messages.
+
+Command Format
+~~~~~~~~~~~~~~
+
+The plugin responds to messages starting with ``m`` or ``metar``:
+
+* ``m`` - Get METAR for your own callsign's location
+* ``metar`` - Get METAR for your own callsign's location
+* ``m <CALLSIGN>`` - Get METAR for the specified callsign's location
+* ``metar <CALLSIGN>`` - Get METAR for the specified callsign's location
+
+How It Works
+~~~~~~~~~~~~
+
+1. When a user sends a ``metar`` command (with or without a callsign), the plugin:
+
+   a. Determines the target callsign (either the sender or the specified callsign)
+
+   b. Queries aprs.fi to get the GPS coordinates for that callsign
+
+   c. Uses the AVWX API to find the nearest weather station to those coordinates
+
+   d. Fetches the METAR report for that station
+
+   e. Returns the raw METAR data to the user
+
+2. The plugin requires the callsign to have recent GPS data in aprs.fi for location lookup.
+
+Example Usage
+~~~~~~~~~~~~~
+
+Send an APRS message to your APRSD server:
+
+.. code::
+
+   m
+
+   or
+
+   metar
+
+   or
+
+   m N0CALL
+
+   or
+
+   metar N0CALL
+
+The plugin will respond with the raw METAR report for the nearest weather station to the callsign's location, for example:
+
+.. code::
+
+   KJFK 251851Z 36010KT 10SM FEW250 12/03 A3012 RMK AO2 SLP201 T01220028
+
+If the callsign doesn't have location data in aprs.fi, or if the AVWX API is unavailable, an error message will be returned.
 
 
 Contributing
@@ -94,6 +232,8 @@ This project was generated from `@hemna`_'s `APRSD Plugin Python Cookiecutter`_ 
 .. _APRSD Plugin Python Cookiecutter: https://github.com/hemna/cookiecutter-aprsd-plugin
 .. _file an issue: https://github.com/hemna/aprsd-avwx-plugin/issues
 .. _pip: https://pip.pypa.io/
+.. _avwx-engine: https://github.com/avwx-rest/avwx-engine
+.. _https://info.avwx.rest/: https://info.avwx.rest/
 .. github-only
 .. _Contributor Guide: CONTRIBUTING.rst
 .. _Usage: https://aprsd-avwx-plugin.readthedocs.io/en/latest/usage.html
