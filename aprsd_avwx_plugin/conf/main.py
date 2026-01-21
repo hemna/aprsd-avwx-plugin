@@ -1,6 +1,5 @@
 from oslo_config import cfg
 
-
 plugin_group = cfg.OptGroup(
     name="aprsd_avwx_plugin",
     title="APRSD Slack Plugin settings",

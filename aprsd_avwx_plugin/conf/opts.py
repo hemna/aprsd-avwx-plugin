@@ -31,13 +31,12 @@ import importlib
 import os
 import pkgutil
 
-
 LIST_OPTS_FUNC_NAME = "list_opts"
 
 
 def _tupleize(dct):
     """Take the dict of options and convert to the 2-tuple format."""
-    return [(key, val) for key, val in dct.items()]
+    return list(dct.items())
 
 
 def list_opts():
@@ -65,8 +64,8 @@ def _import_modules(module_names):
         mod = importlib.import_module("aprsd_avwx_plugin.conf." + modname)
         if not hasattr(mod, LIST_OPTS_FUNC_NAME):
             msg = (
-                "The module 'aprsd_avwx_plugin.conf.%s' should have a '%s' "
-                "function which returns the config options." % (modname, LIST_OPTS_FUNC_NAME)
+                f"The module 'aprsd_avwx_plugin.conf.{modname}' should have a "
+                f"'{LIST_OPTS_FUNC_NAME}' function which returns the config options."
             )
             raise Exception(msg)
         else:

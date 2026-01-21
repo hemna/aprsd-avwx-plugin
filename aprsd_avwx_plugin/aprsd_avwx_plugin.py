@@ -1,8 +1,8 @@
 import logging
 
-from oslo_config import cfg
-from aprsd import packets, plugin, threads, utils
+from aprsd import packets, plugin
 from aprsd.utils import trace
+from oslo_config import cfg
 
 import aprsd_avwx_plugin
 from aprsd_avwx_plugin import conf  # noqa
@@ -12,7 +12,6 @@ LOG = logging.getLogger("APRSD")
 
 
 class MyPlugin(plugin.APRSDRegexCommandPluginBase):
-
     version = aprsd_avwx_plugin.__version__
     # Change this regex to match for your plugin's command
     # Tutorial on regex here: https://regexone.com/
@@ -52,16 +51,12 @@ class MyPlugin(plugin.APRSDRegexCommandPluginBase):
 
     @trace.trace
     def process(self, packet: packets.core.Packet):
-
         """This is called when a received packet matches self.command_regex.
 
         This is only called when self.enabled = True and the command_regex
         matches in the contents of the packet["message_text"]."""
 
         LOG.info("MyPlugin Plugin")
-
-        from_callsign = packet.from_call
-        message = packet.message_text
 
         # Now we can process
         return "some reply message"

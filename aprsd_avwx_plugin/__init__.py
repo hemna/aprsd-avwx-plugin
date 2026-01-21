@@ -11,7 +11,6 @@
 # under the License.
 from importlib.metadata import PackageNotFoundError, version
 
-
 try:
     __version__ = version("aprsd_avwx_plugin")
 except PackageNotFoundError:
