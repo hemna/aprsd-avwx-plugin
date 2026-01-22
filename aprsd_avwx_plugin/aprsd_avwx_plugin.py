@@ -2,7 +2,7 @@ import json
 import logging
 import re
 
-from aprsd import plugin, plugin_utils
+from aprsd import packets, plugin, plugin_utils
 from aprsd.utils import trace
 from oslo_config import cfg
 import requests
@@ -41,6 +41,7 @@ class AVWXWeatherPlugin(plugin.APRSDRegexCommandPluginBase):
     command_regex = r"^([m]|[m]|[m]\s|metar)"
     command_name = "AVWXWeather"
     short_description = "AVWX weather of GPS Beacon location"
+    enabled = False
 
     def setup(self):
         if not CONF.avwx_plugin.base_url:
@@ -50,7 +51,9 @@ class AVWXWeatherPlugin(plugin.APRSDRegexCommandPluginBase):
             LOG.error("Config avwx_plugin.apiKey not specified. Disabling")
             return False
 
-        self.enabled = True
+        self.enabled = CONF.aprsd_avwx_plugin.enabled
+        if not self.enabled:
+            LOG.warning(f"{self.__class__.__name__} is disabled in config.")
 
     def help(self):
         _help = [
@@ -61,6 +64,11 @@ class AVWXWeatherPlugin(plugin.APRSDRegexCommandPluginBase):
 
     @trace.trace
     def process(self, packet):
+        if not self.enabled:
+            # plugin is disabled
+            LOG.warning(f"{self.__class__.__name__} is disabled in config.")
+            return packets.NULL_MESSAGE
+
         fromcall = packet.get("from")
         message = packet.get("message_text", None)
         # ack = packet.get("msgNo", "0")

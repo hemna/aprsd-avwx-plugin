@@ -6,6 +6,11 @@ avwx_group = cfg.OptGroup(
 )
 
 avwx_opts = [
+    cfg.BoolOpt(
+        "enabled",
+        default=False,
+        help="Enable the plugin?",
+    ),
     cfg.StrOpt(
         "apiKey",
         help="avwx-api is an opensource project that has"
