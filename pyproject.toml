@@ -125,6 +125,9 @@ dev = [
 [project.entry-points."oslo.config.opts"]
     "aprsd_avwx_plugin.conf" = "aprsd_avwx_plugin.conf.opts:list_opts"
 
+[project.scripts]
+    "aprsd-avwx-plugin-export-config" = "aprsd_avwx_plugin.cli:main"
+
 # If you are using a different build backend, you will need to change this.
 [tool.setuptools]
 # If there are data files included in your packages that need to be
