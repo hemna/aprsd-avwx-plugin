@@ -169,34 +169,161 @@ How It Works
 
 2. The plugin requires the callsign to have recent GPS data in aprs.fi for location lookup.
 
-Example Usage
-~~~~~~~~~~~~~
+Example Interactions
+~~~~~~~~~~~~~~~~~~~
 
-Send an APRS message to your APRSD server:
+The following examples show typical interactions with the plugin via APRS messages:
 
-.. code::
+Example 1: Get METAR for Your Own Location
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   m
+You send a message to the APRSD server asking for weather at your current location:
 
-   or
+.. code:: text
 
-   metar
+   From: N0CALL-1
+   To: APRSD
+   Message: m
 
-   or
+The plugin looks up your callsign (N0CALL-1) on aprs.fi, finds your GPS coordinates,
+locates the nearest weather station, and responds:
 
-   m N0CALL
+.. code:: text
 
-   or
+   From: APRSD
+   To: N0CALL-1
+   Message: KJFK 251851Z 36010KT 10SM FEW250 12/03 A3012 RMK AO2 SLP201 T01220028
 
-   metar N0CALL
+Example 2: Get METAR Using Full Command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The plugin will respond with the raw METAR report for the nearest weather station to the callsign's location, for example:
+You can also use the full "metar" command:
 
-.. code::
+.. code:: text
 
-   KJFK 251851Z 36010KT 10SM FEW250 12/03 A3012 RMK AO2 SLP201 T01220028
+   From: N0CALL-1
+   To: APRSD
+   Message: metar
 
-If the callsign doesn't have location data in aprs.fi, or if the AVWX API is unavailable, an error message will be returned.
+Response:
+
+.. code:: text
+
+   From: APRSD
+   To: N0CALL-1
+   Message: KORD 251855Z 28015G22KT 10SM OVC045 08/M02 A2998 RMK AO2 SLP145 T00831017
+
+Example 3: Get METAR for Another Callsign
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can request weather for a different callsign by including it in your message:
+
+.. code:: text
+
+   From: N0CALL-1
+   To: APRSD
+   Message: m W1AW
+
+The plugin looks up W1AW's location and responds:
+
+.. code:: text
+
+   From: APRSD
+   To: N0CALL-1
+   Message: KBDL 251900Z 27012KT 15SM CLR 10/02 A3001 RMK AO2 SLP168 T01000017
+
+Example 4: Using Short Command with Callsign
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The short "m" command also works with a callsign:
+
+.. code:: text
+
+   From: N0CALL-1
+   To: APRSD
+   Message: m KB1ABC
+
+Response:
+
+.. code:: text
+
+   From: APRSD
+   To: N0CALL-1
+   Message: KBOS 251905Z 35008KT 10SM FEW020 SCT250 11/04 A3005 RMK AO2 SLP178 T01110039
+
+Example 5: Error - Callsign Not Found
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the callsign doesn't have location data in aprs.fi:
+
+.. code:: text
+
+   From: N0CALL-1
+   To: APRSD
+   Message: m NOCALL
+
+Response:
+
+.. code:: text
+
+   From: APRSD
+   To: N0CALL-1
+   Message: Failed to fetch location
+
+Example 6: Error - No Recent GPS Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the callsign exists but has no recent GPS beacons:
+
+.. code:: text
+
+   From: N0CALL-1
+   To: APRSD
+   Message: m OLDSTATION
+
+Response:
+
+.. code:: text
+
+   From: APRSD
+   To: N0CALL-1
+   Message: Failed to fetch location
+
+Example 7: Error - AVWX API Unavailable
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the AVWX API is down or unreachable:
+
+.. code:: text
+
+   From: N0CALL-1
+   To: APRSD
+   Message: m
+
+Response:
+
+.. code:: text
+
+   From: APRSD
+   To: N0CALL-1
+   Message: Failed to get the weather
+
+Understanding METAR Reports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The plugin returns raw METAR (Meteorological Aerodrome Report) data. Here's what the elements mean:
+
+* **Station ID** (e.g., ``KJFK``) - 4-letter ICAO airport identifier
+* **Date/Time** (e.g., ``251851Z``) - Day 25th, 18:51 UTC
+* **Wind** (e.g., ``36010KT``) - Wind from 360° at 10 knots
+* **Visibility** (e.g., ``10SM``) - 10 statute miles
+* **Clouds** (e.g., ``FEW250``) - Few clouds at 25,000 feet
+* **Temperature/Dewpoint** (e.g., ``12/03``) - 12°C / 3°C
+* **Altimeter** (e.g., ``A3012``) - 30.12 inches of mercury
+
+For more information on reading METAR reports, see `METAR format documentation`_.
+
+.. _METAR format documentation: https://en.wikipedia.org/wiki/METAR
 
 
 Contributing
