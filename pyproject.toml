@@ -23,7 +23,6 @@ requires-python = ">=3.11"
 dynamic = ["version"]
 
 dependencies = [
-    "aprsd>=4.2.0",
     "oslo_config",
 ]
 
